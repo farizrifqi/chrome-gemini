@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CustomWindow } from "../window";
 import { remark } from "remark";
 import html from "remark-html";
 import matter from "gray-matter";
-import PrismLoader from "../prism-loader";
 import hljs from "highlight.js";
 import "highlight.js/styles/default.css";
 
@@ -14,7 +12,6 @@ export default function Prompting({ aiSession }: { aiSession: any }) {
   const [promptIn, setPromptIn] = useState("");
   const [promptOut, setPromptOut] = useState("");
   const [processing, setProcessing] = useState(false);
-  const [msg, setMsg] = useState("");
 
   const formatResult = async (text: any) => {
     const matterResult = matter(text);
@@ -48,34 +45,11 @@ export default function Prompting({ aiSession }: { aiSession: any }) {
           setPromptOut(tempFinal.toString());
         }
       }
-      // const tempFinal = await formatResult(result);
-      // setPromptOut(tempFinal.toString());
-
       setProcessing(false);
     };
     if (promptIn !== "") {
       if (processing) return;
 
-      // customWindow.ai.canCreateTextSession().then(() => {
-      // customWindow.ai.createTextSession().then(async (session: any) => {
-      // session
-      //   .prompt(promptIn)
-      //   .then((res: any) => {
-      //     formatResult(res).then((finalRes: any) => {
-      //       console.log({ finalRes });
-      //       setPromptOut(finalRes);
-      //     });
-      //     setProcessing(false);
-      //   })
-      //   .catch((err: any) => {
-      //     console.log({ err });
-      //     setProcessing(false);
-      //   });
-      // await session.prompt(`
-      //   You are a friendly, helpful assistant specialized in programming, bussiness intelligence, and data analysis. Answer in markdown result.
-      // `);
-      // });
-      // });
       streamOutput();
     }
   }, [promptIn]);
@@ -106,7 +80,6 @@ export default function Prompting({ aiSession }: { aiSession: any }) {
         <label className="text-base">Output</label>
 
         <div className="output mb-5">
-          {/* <PrismLoader promptOut={promptOut} /> */}
           <div
             dangerouslySetInnerHTML={{
               __html: promptOut,
