@@ -6,7 +6,7 @@ import { CustomWindow } from "./window";
 // Cast window to the CustomWindow interface
 const componentMapping: { [key: number]: (props?: any) => JSX.Element } = {
   0: (props?: any) => <Message {...props} />,
-  1: (props?: any) => <Prompting />,
+  1: (props?: any) => <Prompting {...props} />,
   2: (props?: any) => <Message {...props} />,
   3: (props?: any) => <Message {...props} />,
 };
@@ -20,6 +20,7 @@ const message: { [key: number]: string } = {
 
 export default function MainPage() {
   const [loaded, setLoaded] = useState(0 as number);
+  const [aiSession, setAISession] = useState({} as any);
   useEffect(() => {
     const customWindow = window as CustomWindow;
 
@@ -30,7 +31,10 @@ export default function MainPage() {
             setLoaded(2);
             return;
           }
-          setLoaded(1);
+          customWindow.ai.createTextSession().then((ses: any) => {
+            setAISession(ses);
+            setLoaded(1);
+          });
         });
       } else {
         setLoaded(3);
@@ -39,7 +43,7 @@ export default function MainPage() {
   }, []);
   return (
     <div className="h-full flex flex-col items-center p-10 gap-5 w-full max-w-screen-xl">
-      {componentMapping[loaded]({ message: message[loaded] })}
+      {componentMapping[loaded]({ message: message[loaded], aiSession })}
     </div>
   );
 }

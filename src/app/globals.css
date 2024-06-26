@@ -93,6 +93,25 @@ a {
 * {
   box-sizing: border-box;
 }
-ul {
-  list-style: decimal;
+
+.output {
+  @apply w-full h-full px-3 py-5 border rounded-lg overflow-y-auto;
+}
+.output pre {
+  @apply overflow-x-scroll my-5;
+}
+.output p {
+  @apply my-3;
+}
+.output ul {
+  @apply list-outside ml-5 list-disc;
+}
+.output p code {
+  @apply bg-gray-100 px-1 rounded;
+}
+.output li code {
+  @apply bg-gray-100 px-1 rounded;
+}
+.output ul li::marker {
+  @apply text-gray-600;
 }

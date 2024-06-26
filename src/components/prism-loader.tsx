@@ -12,7 +12,6 @@ export default function PrismLoader({ promptOut }: any) {
   }, [promptOut]);
   return (
     <div
-      className=" "
       dangerouslySetInnerHTML={{
         __html: promptOut,
       }}

@@ -6,62 +6,85 @@ import { remark } from "remark";
 import html from "remark-html";
 import matter from "gray-matter";
 import PrismLoader from "../prism-loader";
+import hljs from "highlight.js";
+import "highlight.js/styles/default.css";
 
-export default function Prompting() {
+export default function Prompting({ aiSession }: { aiSession: any }) {
   const [prompt, setPrompt] = useState("");
   const [promptIn, setPromptIn] = useState("");
   const [promptOut, setPromptOut] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [msg, setMsg] = useState("");
 
   const formatResult = async (text: any) => {
     const matterResult = matter(text);
     const result = await remark()
-      .use(html, { sanitize: false })
+      .use(html, { sanitize: true })
       .process(matterResult.content);
     return result;
   };
 
   useEffect(() => {
-    const customWindow = window as CustomWindow;
+    const streamOutput = async () => {
+      setProcessing(true);
+      const stream = await aiSession.promptStreaming(
+        promptIn +
+          ", answer in markdown result. highlight if there's any important subject/object"
+      );
+      let result = "";
+      // const result = await aiSession.prompt(
+      //   promptIn + ", answer in markdown result"
+      // );
+      // console.log({ result });
 
+      let previousLength = 0;
+      for await (const chunk of stream) {
+        if (chunk) {
+          const newContent = chunk.slice(previousLength);
+          previousLength = chunk.length;
+          result += newContent;
+          const tempFinal = await formatResult(result);
+
+          setPromptOut(tempFinal.toString());
+        }
+      }
+      // const tempFinal = await formatResult(result);
+      // setPromptOut(tempFinal.toString());
+
+      setProcessing(false);
+    };
     if (promptIn !== "") {
-      customWindow.ai.canCreateTextSession().then(() => {
-        setProcessing(true);
-        customWindow.ai.createTextSession().then(async (session: any) => {
-          // session
-          //   .prompt(promptIn)
-          //   .then((res: any) => {
-          //     formatResult(res).then((finalRes: any) => {
-          //       console.log({ finalRes });
-          //       setPromptOut(finalRes);
-          //     });
-          //     setProcessing(false);
-          //   })
-          //   .catch((err: any) => {
-          //     console.log({ err });
-          //     setProcessing(false);
-          //   });
-          // await session.prompt(`
-          //   You are a friendly, helpful assistant specialized in programming, bussiness intelligence, and data analysis. Answer in markdown result.
-          // `);
+      if (processing) return;
 
-          const stream = session.promptStreaming(
-            promptIn + ", answer in markdown result"
-          );
-          for await (const chunk of stream) {
-            formatResult(chunk).then((finalRes: any) => {
-              setPromptOut(finalRes);
-            });
-          }
-          setProcessing(false);
-        });
-      });
+      // customWindow.ai.canCreateTextSession().then(() => {
+      // customWindow.ai.createTextSession().then(async (session: any) => {
+      // session
+      //   .prompt(promptIn)
+      //   .then((res: any) => {
+      //     formatResult(res).then((finalRes: any) => {
+      //       console.log({ finalRes });
+      //       setPromptOut(finalRes);
+      //     });
+      //     setProcessing(false);
+      //   })
+      //   .catch((err: any) => {
+      //     console.log({ err });
+      //     setProcessing(false);
+      //   });
+      // await session.prompt(`
+      //   You are a friendly, helpful assistant specialized in programming, bussiness intelligence, and data analysis. Answer in markdown result.
+      // `);
+      // });
+      // });
+      streamOutput();
     }
   }, [promptIn]);
-
+  useEffect(() => {
+    hljs.highlightAll();
+  }, [processing, promptOut, prompt]);
   return (
-    <div className="flex w-full h-full gap-5">
-      <div className="flex flex-col gap-1 w-1/2">
+    <div className="flex flex-col w-full h-full gap-5">
+      <div className="flex flex-col gap-1 w-full sticky top-0 bg-white p-2 shadow-md my-2">
         <label className="text-base">Input</label>
         <textarea
           className="text-base p-2.5 outline-none border rounded-lg w-full"
@@ -82,7 +105,14 @@ export default function Prompting() {
       <div className="flex flex-col gap-1 w-full">
         <label className="text-base">Output</label>
 
-        <PrismLoader promptOut={promptOut.toString()} />
+        <div className="output mb-5">
+          {/* <PrismLoader promptOut={promptOut} /> */}
+          <div
+            dangerouslySetInnerHTML={{
+              __html: promptOut,
+            }}
+          ></div>
+        </div>
       </div>
     </div>
   );
