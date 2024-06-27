@@ -22,11 +22,22 @@ export default function MainPage() {
   const [loaded, setLoaded] = useState(0 as number);
   const [attempt, setAttempt] = useState(0 as number);
   const [aiSession, setAISession] = useState({} as any);
+  const [sesOptions, setSesOptions] = useState({ temperature: 0.8, topK: 3 });
+  const [customWindow, setCurrentWindow] = useState(undefined as any);
+  const resetSession = () => {
+    setLoaded(0);
+    setAttempt(0);
+    setAISession(undefined);
+    setCurrentWindow(undefined);
+  };
   useEffect(() => {
-    const customWindow = window as CustomWindow;
     if (typeof window !== "undefined") {
-      if (typeof customWindow.ai !== "undefined") {
-        customWindow.ai.canCreateTextSession().then((res: any) => {
+      if (!customWindow) {
+        const newWindow = window as CustomWindow;
+        setCurrentWindow(newWindow);
+      }
+      if (typeof customWindow?.ai !== "undefined") {
+        customWindow.ai.canCreateGenericSession().then((res: any) => {
           if (res != "readily") {
             if (attempt < 3) {
               setAttempt(attempt + 1);
@@ -35,7 +46,7 @@ export default function MainPage() {
             }
             return;
           }
-          customWindow.ai.createTextSession().then((ses: any) => {
+          customWindow.ai.createGenericSession(sesOptions).then((ses: any) => {
             setAISession(ses);
             setLoaded(1);
           });
@@ -48,10 +59,16 @@ export default function MainPage() {
         }
       }
     }
-  }, [attempt]);
+  }, [attempt, sesOptions]);
   return (
     <div className="h-full flex flex-col items-center p-10 gap-5 w-full max-w-screen-xl">
-      {componentMapping[loaded]({ message: message[loaded], aiSession })}
+      {componentMapping[loaded]({
+        message: message[loaded],
+        aiSession,
+        resetSession,
+        setSesOptions,
+        sesOptions,
+      })}
     </div>
   );
 }
