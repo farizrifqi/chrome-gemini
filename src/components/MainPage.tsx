@@ -37,7 +37,7 @@ export default function MainPage() {
         setCurrentWindow(newWindow);
       }
       if (typeof customWindow?.ai !== "undefined") {
-        customWindow.ai.canCreateGenericSession().then((res: any) => {
+        customWindow.ai.canCreateTextSession().then((res: any) => {
           if (res != "readily") {
             if (attempt < 3) {
               setAttempt(attempt + 1);
@@ -46,7 +46,7 @@ export default function MainPage() {
             }
             return;
           }
-          customWindow.ai.createGenericSession(sesOptions).then((ses: any) => {
+          customWindow.ai.createTextSession(sesOptions).then((ses: any) => {
             setAISession(ses);
             setLoaded(1);
           });
